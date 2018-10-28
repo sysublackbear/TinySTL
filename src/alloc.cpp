@@ -26,19 +26,22 @@ namespace TinySTL{
 		}
 	}
 	void alloc::deallocate(void *ptr, size_t bytes){
+		// 大于128bytes，直接调用1级配置器回收空间，直接free
 		if (bytes > EMaxBytes::MAXBYTES){
 			free(ptr);
 		}
 		else{
+			// 根据大小寻找对应的free_list下标
 			size_t index = FREELIST_INDEX(bytes);
 			obj *node = static_cast<obj *>(ptr);
+			// 将空间插回到free_list中，代表回收了。
 			node->next = free_list[index];
 			free_list[index] = node;
 		}
 	}
 	void *alloc::reallocate(void *ptr, size_t old_sz, size_t new_sz){
-		deallocate(ptr, old_sz);
-		ptr = allocate(new_sz);
+		deallocate(ptr, old_sz);  // 先回收旧的
+		ptr = allocate(new_sz);   // 再分配新的
 
 		return ptr;
 	}
