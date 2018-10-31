@@ -53,7 +53,7 @@ namespace TinySTL{
 	//*************和容器的容量相关******************************
 	template<class T, class Alloc>
 	void vector<T, Alloc>::resize(size_type n, value_type val = value_type()){
-		if (n < size()){
+		if (n < size()){  // 少于size()空间
 			dataAllocator::destroy(start_ + n, finish_);
 			finish_ = start_ + n;
 		}
@@ -99,7 +99,7 @@ namespace TinySTL{
 		finish_ = finish_ - lenOfRemoved;
 		for (; lenOfTail != 0; --lenOfTail){
 			auto temp = (last - lenOfRemoved);
-			*temp = *(last++);
+			*temp = *(last++);  // 拿后面那一截的数值赋值给删除那一截
 		}
 		return (first);
 	}
@@ -256,7 +256,7 @@ namespace TinySTL{
 	template<class T, class Alloc>
 	void vector<T, Alloc>::pop_back(){
 		--finish_;
-		dataAllocator::destroy(finish_);
+		dataAllocator::destroy(finish_);  // 回收单元
 	}
 	template<class T, class Alloc>
 	void vector<T, Alloc>::destroyAndDeallocateAll(){
