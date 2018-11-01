@@ -54,20 +54,20 @@ namespace TinySTL{
 	template<class T, class Alloc>
 	void vector<T, Alloc>::resize(size_type n, value_type val = value_type()){
 		if (n < size()){  // 少于size()空间
-			dataAllocator::destroy(start_ + n, finish_);
+			dataAllocator::destroy(start_ + n, finish_);  // 把[start_ + n, finish_]之间的元素析构掉
 			finish_ = start_ + n;
 		}
 		else if (n > size() && n <= capacity()){
 			auto lengthOfInsert = n - size();
-			finish_ = TinySTL::uninitialized_fill_n(finish_, lengthOfInsert, val);
+			finish_ = TinySTL::uninitialized_fill_n(finish_, lengthOfInsert, val);  // 插入元素
 		}
 		else if (n > capacity()){
 			auto lengthOfInsert = n - size();
-			T *newStart = dataAllocator::allocate(getNewCapacity(lengthOfInsert));
-			T *newFinish = TinySTL::uninitialized_copy(begin(), end(), newStart);
+			T *newStart = dataAllocator::allocate(getNewCapacity(lengthOfInsert));  // 分配lengthOfInsert和endOfStorage_之间的最大值空间出来
+			T *newFinish = TinySTL::uninitialized_copy(begin(), end(), newStart);  // 把 [begin(), end()]的内容拷贝到newStart
 			newFinish = TinySTL::uninitialized_fill_n(newFinish, lengthOfInsert, val);
 
-			destroyAndDeallocateAll();
+			destroyAndDeallocateAll();  // 回收原来的start_, end_
 			start_ = newStart;
 			finish_ = newFinish;
 			endOfStorage_ = start_ + n;
@@ -125,9 +125,9 @@ namespace TinySTL{
 
 		T *newStart = dataAllocator::allocate(newCapacity);  // 调用allocator<T>::allocate(),内存池分配
 		T *newEndOfStorage = newStart + newCapacity;
-		T *newFinish = TinySTL::uninitialized_copy(begin(), position, newStart);
-		newFinish = TinySTL::uninitialized_fill_n(newFinish, n, val);
-		newFinish = TinySTL::uninitialized_copy(position, end(), newFinish);
+		T *newFinish = TinySTL::uninitialized_copy(begin(), position, newStart);  // [0, pos]空间拷贝
+		newFinish = TinySTL::uninitialized_fill_n(newFinish, n, val);  // [pos, pos+n]插入
+		newFinish = TinySTL::uninitialized_copy(position, end(), newFinish);  // [pos, end)空间拷贝
 
 		destroyAndDeallocateAll();
 		start_ = newStart;
@@ -173,7 +173,7 @@ namespace TinySTL{
 				// 将[position, finish_]的空间往后移，依次构造对象。
 				//move the [position, finish_) back
 				//*(tempPtr + locationNeed) = *tempPtr;//bug
-				construct(tempPtr + locationNeed, *tempPtr);
+				construct(tempPtr + locationNeed, *tempPtr);  // copy_backward
 			}
 			TinySTL::uninitialized_fill_n(position, n, value);
 			finish_ += locationNeed;
