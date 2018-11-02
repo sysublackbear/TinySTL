@@ -3,11 +3,14 @@
 
 namespace TinySTL{
 	namespace Detail{
+		// 对迭代器累加1,就是前进一个节点
 		template<class T>
 		listIterator<T>& listIterator<T>::operator++(){
 			p = p->next;
 			return *this;
 		}
+		// 对解引用的值加1
+		// (*p)++
 		template<class T>
 		listIterator<T> listIterator<T>::operator++(int){
 			auto res = *this;
@@ -152,10 +155,10 @@ namespace TinySTL{
 	}
 	template<class T>
 	typename list<T>::iterator list<T>::insert(iterator position, const value_type& val){
-		if (position == begin()){
+		if (position == begin()){  // 链表头
 			push_front(val);
 			return begin();
-		}else if (position == end()){
+		}else if (position == end()){  // 链表尾
 			auto ret = position;
 			push_back(val);
 			return ret;
@@ -239,7 +242,7 @@ namespace TinySTL{
 		return reverse_iterator(head);
 	}
 	template<class T>
-	void list<T>::reverse(){//²ÉÓÃÎ²²å·¨
+	void list<T>::reverse(){ // 链表逆向重置
 		if (empty() || head.p->next == tail.p) return;
 		auto curNode = head.p;
 		head.p = tail.p->prev;
@@ -324,21 +327,24 @@ namespace TinySTL{
 			}
 		}
 	}
+
+	// 将x接合于position位置之前
 	template<class T>
 	void list<T>::splice(iterator position, list& x){
 		this->insert(position, x.begin(), x.end());
-		x.head.p = x.tail.p;
+		x.head.p = x.tail.p;  // 将x从原来的链表摘下来
 	}
+	// 将[first, last)内的所有元素接合于position所指位置之前
 	template<class T>
 	void list<T>::splice(iterator position, list& x, iterator first, iterator last){
-		if (first.p == last.p) return;
+		if (first.p == last.p) return;  // 空链表,直接返回
 		auto tailNode = last.p->prev;
-		if (x.head.p == first.p){
-			x.head.p = last.p;
+		if (x.head.p == first.p){  // x和first
+			x.head.p = last.p;  // 释放x链表
 			x.head.p->prev = nullptr;
 		}
-		else{
-			first.p->prev->next = last.p;
+		else{  // x.head.p != first.p
+			first.p->prev->next = last.p;  // 把原来的链表接驳
 			last.p->prev = first.p->prev;
 		}
 		if (position.p == head.p){
@@ -367,7 +373,7 @@ namespace TinySTL{
 				++it1;
 			else{
 				auto temp = it2++;
-				this->splice(it1, x, temp);
+				this->splice(it1, x, temp);  // 讲it2对应的节点插入到it1
 			}
 		}
 		if (it1 == end()){
@@ -409,25 +415,32 @@ namespace TinySTL{
 	void list<T>::sort(){
 		sort(TinySTL::less<T>());
 	}
+
+	// list不能使用STL算法sort(),必须使用自己的sort成员函数
+	// 因为STL算法sort() 只接受 RandomAccessIterator
+	// 本函数使用quick sort
 	template<class T>
 	template <class Compare>
 	void list<T>::sort(Compare comp){
+		// 如果是空链表或仅有一个元素,就不进行任何操作
+		// 使用 size() == 0 || size() == 1 来判断,虽然也可以,但是比较慢
 		if (empty() || head.p->next == tail.p)
 			return;
 
+		// 中介数据存储
 		list carry;
 		list counter[64];
 		int fill = 0;
 		while (!empty()){
-			carry.splice(carry.begin(), *this, begin());
+			carry.splice(carry.begin(), *this, begin());  // 将this链表的头元素添加到carry中
 			int i = 0;
-			while (i < fill && !counter[i].empty()){
-				counter[i].merge(carry, comp);
+			while (i < fill && !counter[i].empty()){  
+				counter[i].merge(carry, comp);  // counter[1].merge(carry, comp);carry
 				carry.swap(counter[i++]);
 			}
-			carry.swap(counter[i]);
+			carry.swap(counter[i]);  // counter[0]等于this的头元素
 			if (i == fill)
-				++fill;
+				++fill;  // fill=1;
 		}
 		for (int i = 0; i != fill; ++i){
 			counter[i].merge(counter[i - 1], comp);
