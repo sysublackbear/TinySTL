@@ -3,18 +3,24 @@
 
 namespace TinySTL{
 	namespace Detail{
+		// 迭代器下向前移动一位
 		template<class T>
 		dq_iter<T>& dq_iter<T>::operator ++(){
-			if (cur_ != getBuckTail(mapIndex_))//+1后还在同一个桶里
-				++cur_;
-			else if (mapIndex_ + 1 < container_->mapSize_){//+1后还在同一个map里
-				++mapIndex_;
+			// 判断+1之后是否还在同一个桶里面
+			// mapIndex_ : 当前在哪一段的连续存储区中
+			// 是否已经到该存储区的末尾了
+			if (cur_ != getBuckTail(mapIndex_))
+				++cur_;  // 还没到末尾,直接相加
+			// cur_ == getBuckTail(mapIndex_) && mapIndex_ + 1 < container_->mapSize_
+			else if (mapIndex_ + 1 < container_->mapSize_){
+				++mapIndex_;  // 跳到下一段存储区
 				cur_ = getBuckHead(mapIndex_);
 			}
+			// cur_ == getBuckTail(mapIndex_) && mapIndex_ + 1 >= container_->mapSize_
 			else{//+1后跳出了map
 				mapIndex_ = container_->mapSize_;
 				//cur_ = container_->map_[mapIndex_] + getBuckSize();//指向map_[mapSize_-1]的尾的下一个位置
-				cur_ = container_->map_[mapIndex_];
+				cur_ = container_->map_[mapIndex_];  // 直接推到当前的最后一位,但不分配新的空间了
 			}
 			return *this;
 		}
@@ -34,7 +40,7 @@ namespace TinySTL{
 			}
 			else{
 				mapIndex_ = 0;
-				cur_ = container_->map_[mapIndex_];//指向map_[0]的头
+				cur_ = container_->map_[mapIndex_]; //指向map_[0]的头,不分配新的空间了。
 			}
 			return *this;
 		}
@@ -71,11 +77,11 @@ namespace TinySTL{
 		template<class T>
 		dq_iter<T> operator + (const dq_iter<T>& it, typename dq_iter<T>::difference_type n){//assume n >= 0
 			dq_iter<T> res(it);
-			auto m = res.getBuckTail(res.mapIndex_) - res.cur_;
+			auto m = res.getBuckTail(res.mapIndex_) - res.cur_;  // 还差多少步
 			if (n <= m){//前进n步仍在同一个桶中
 				res.cur_ += n;
 			}
-			else{
+			else{  // 多出的距离走到下一个桶里面
 				n = n - m;
 				res.mapIndex_ += (n / it.getBuckSize() + 1);
 				auto p = res.getBuckHead(res.mapIndex_);
@@ -116,10 +122,12 @@ namespace TinySTL{
 		void swap(dq_iter<T>& lhs, dq_iter<T>& rhs){
 			lhs.swap(rhs);
 		}
+		// 求出当前存储区位置的末尾
 		template<class T>
 		T *dq_iter<T>::getBuckTail(size_t mapIndex)const{
 			return container_->map_[mapIndex] + (container_->getBuckSize() - 1);
 		}
+		// 求出当前存储区位置的开头
 		template<class T>
 		T *dq_iter<T>::getBuckHead(size_t mapIndex)const{
 			return container_->map_[mapIndex];
@@ -180,6 +188,8 @@ namespace TinySTL{
 	}
 	template<class T, class Alloc>
 	size_t deque<T, Alloc>::getBuckSize()const{
+		// enum class EBucksSize{BUCKSIZE = 64};
+		// 强制规定每个存储区的大小固定为64字节
 		return (size_t)EBucksSize::BUCKSIZE;
 	}
 	template<class T, class Alloc>
@@ -197,7 +207,7 @@ namespace TinySTL{
 	}
 	template<class T, class Alloc>
 	typename deque<T, Alloc>::reference deque<T, Alloc>::operator[] (size_type n){
-		return *(begin() + n);
+		return *(begin() + n);  // 随机访问通过调用重新实现的+操作符来达到目的
 	}
 	template<class T, class Alloc>
 	typename deque<T, Alloc>::reference deque<T, Alloc>::front(){
