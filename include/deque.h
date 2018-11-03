@@ -19,9 +19,9 @@ namespace TinySTL{
 		private:
 			//typedef TinySTL::deque<T>* cntrPtr;
 			typedef const ::TinySTL::deque<T>* cntrPtr;
-			size_t mapIndex_;
-			T *cur_;
-			cntrPtr container_;
+			size_t mapIndex_;  // 当前指向哪块连续区
+			T *cur_;  // 当前下标
+			cntrPtr container_;  // 迭代器
 		public:
 			dq_iter() :mapIndex_(-1), cur_(0), container_(0){}
 			dq_iter(size_t index, T *ptr, cntrPtr container)
@@ -79,9 +79,9 @@ namespace TinySTL{
 		typedef Alloc dataAllocator;
 		enum class EBucksSize{BUCKSIZE = 64};
 	private:
-		iterator beg_, end_;
-		size_t mapSize_;
-		T **map_;
+		iterator beg_, end_;  // beg_:第一个桶的第一位;end_:最后一个桶的最后一位
+		size_t mapSize_;  // map_内可以容纳多少个指针
+		T **map_;  // map_是一块连续空间,其内每个元素都是一个指针,指向一块缓冲区
 	public:
 		deque();
 		explicit deque(size_type n, const value_type& val = value_type());
