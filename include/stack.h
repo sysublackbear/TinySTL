@@ -17,6 +17,7 @@ namespace TinySTL{
 	public:
 		explicit stack(const container_type& ctnr = container_type()) :container_(ctnr){}
 
+		// 所有的方法实现都依赖于底层容器Container方法,什么方法都不需要实现,也没有迭代器
 		bool empty() const{ return container_.empty(); }
 		size_type size() const{ return container_.size(); }
 		value_type& top(){ return (container_.back()); }
