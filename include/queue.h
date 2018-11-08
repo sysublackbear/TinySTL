@@ -50,6 +50,9 @@ namespace TinySTL{
 	void swap(queue<T, Container>& x, queue<T, Container>& y){
 		TinySTL::swap(x.container_, y.container_);
 	}
+
+	// 用vector实现优先队列
+	// priority_queue 不是container,
 	//class of priority_queue
 	template <class T, class Container = TinySTL::vector<T>, 
 				class Compare = TinySTL::less<typename Container::value_type>> 
@@ -64,6 +67,8 @@ namespace TinySTL{
 		container_type container_;
 		Compare compare_;
 	public:
+		// 以下用到的make_heap(),push_heap(),pop_heap()都是泛型算法
+		// 注意:任一个构造函数都立刻于底层容器内产生一个implicit representation heap
 		explicit priority_queue(const Compare& comp = Compare(),
 			const Container& ctnr = Container())
 			: container_(ctnr), compare_(comp){}
@@ -73,6 +78,7 @@ namespace TinySTL{
 			const Container& ctnr = Container())
 			: container_(ctnr), compare_(comp){
 			container_.insert(container_.end(), first, last);
+			// 利用make_heap构造vector
 			TinySTL::make_heap(container_.begin(), container_.end());
 		}
 		bool empty() const{
@@ -85,10 +91,14 @@ namespace TinySTL{
 			return container_.front();
 		}
 		void push(const value_type& val){
+			// push_heap是泛型算法,先利用底层容器的push_back()将新元素推入末端
+			// 再重排heap
 			container_.push_back(val);
 			TinySTL::push_heap(container_.begin(), container_.end(), compare_);
 		}
 		void pop(){
+			// pop_heap 是泛型算法,从heap内取出一个元素。它并不是真正把元素弹出
+			// 而是重排heap,然后再以底层容器的 pop_back() 取得被弹出的元素。
 			TinySTL::pop_heap(container_.begin(), container_.end(), compare_);
 			container_.pop_back();
 		}
