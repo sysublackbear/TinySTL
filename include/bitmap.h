@@ -4,7 +4,6 @@
 #include <cstdint>
 #include <iostream>
 #include <stdexcept>
-//#include <string>
 
 #include "allocator.h"
 #include "string.h"
