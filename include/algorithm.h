@@ -98,6 +98,7 @@ namespace TinySTL{
 			auto leftChildIndex = index * 2 + 1;  // 左子节点 = 父节点 * 2 + 1
 			for (auto cur = first; leftChildIndex < (last - head + 1) && cur < last; leftChildIndex = index * 2 + 1){
 				auto child = head + leftChildIndex;//get the left child
+				// 如果右子点比左节点要大，那么我们以右节点（实质上就是子节点的较大值）和父节点做交换
 				if ((child + 1) <= last && *(child + 1) > *child)//cur has a right child
 					child = child + 1;
 				if (comp(*cur, *child))
@@ -121,6 +122,7 @@ namespace TinySTL{
 		// 如:68,50,65,21,31,32,26,19,16,13,24，range = 11
 		// cur = first + 11 / 2 - 1 = first + 4
 		// 找出第一个需要调整的树节点:31
+		// **即最低的树的头结点
 		for (auto cur = first + range / 2 - 1; cur >= first; --cur){
 			TinySTL::down(cur, last - 1, first, comp);  // [cur, last - 1]
 			if (cur == first) return;  // 走到根节点，就结束
@@ -170,6 +172,7 @@ namespace TinySTL{
 	}
 	//********* [is_heap] ***************
 	//********* [Algorithm Complexity: O(N)] ****************
+	// 检查一个数组是否满足堆的结构
 	template <class RandomAccessIterator>
 	bool is_heap(RandomAccessIterator first, RandomAccessIterator last){
 		return TinySTL::is_heap(first, last,
@@ -190,6 +193,7 @@ namespace TinySTL{
 	}
 	//********** [all_of] *************************
 	//********* [Algorithm Complexity: O(N)] ****************
+	// all_of是否全部满足;any_of是否存在满足;none_of是否都不满足
 	template <class InputIterator, class UnaryPredicate>
 	bool all_of(InputIterator first, InputIterator last, UnaryPredicate pred){
 		for (; first != last; ++first){
@@ -220,6 +224,7 @@ namespace TinySTL{
 	}
 	//********** [for_each] *************************
 	//********* [Algorithm Complexity: O(N)] ****************
+	// 语法糖:for_each(vc.begin(), vc.end(), Play("Element:"));
 	template <class InputIterator, class Function>
 	Function for_each(InputIterator first, InputIterator last, Function fn){
 		for (; first != last; ++first)
@@ -324,6 +329,7 @@ namespace TinySTL{
 	}
 	//********** [adjacent_find] ******************************
 	//********* [Algorithm Complexity: O(N)] ****************
+	// 查找相等或满足条件的邻近元素对
 	template <class ForwardIterator>
 	ForwardIterator adjacent_find(ForwardIterator first, ForwardIterator last){
 		return TinySTL::adjacent_find(first, last, 
@@ -363,6 +369,7 @@ namespace TinySTL{
 	}
 	//********** [mismatch] ******************************
 	//********* [Algorithm Complexity: O(N)] ****************
+	// 用来平行比较两个序列，指出两者之间的第一个不匹配点。
 	template <class InputIterator1, class InputIterator2>
 	pair<InputIterator1, InputIterator2>
 		mismatch(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2){
@@ -400,6 +407,7 @@ namespace TinySTL{
 	}
 	//********** [is_permutation] ******************************
 	//********* [Algorithm Complexity: O(N*N)] ****************
+	// 用来判断两个序列是否为同一元素集的不同排列
 	template <class ForwardIterator1, class ForwardIterator2>
 	bool is_permutation(ForwardIterator1 first1, ForwardIterator1 last1,
 		ForwardIterator2 first2){
@@ -410,15 +418,18 @@ namespace TinySTL{
 	bool is_permutation(ForwardIterator1 first1, ForwardIterator1 last1,
 		ForwardIterator2 first2, BinaryPredicate pred){
 		//find the first position that is not equal
+		// 找出第一个
 		auto res = TinySTL::mismatch(first1, last1, first2, pred);
 		first1 = res.first, first2 = res.second;
-		if (first1 == last1)
+		if (first1 == last1)  // 第一个序列已经遍历完了，证明两个序列相等
 			return true;
 		auto last2 = first2;
-		std::advance(last2, std::distance(first1, last1));
+		std::advance(last2, std::distance(first1, last1));  // 计算不相等的序列[first1, last1]
 		for (auto it1 = first1; it1 != last1; ++it1){
+			// [capture](parameters){body}
+			// [&]：用到的任何外部变量都隐式按引用捕获
 			if (TinySTL::find_if(first1, it1, [&](decltype(*first1) val){return pred(val, *it1); }) == it1){
-				auto n = TinySTL::count(first2, last2, *it1);
+				auto n = TinySTL::count(first2, last2, *it1);  // 在[first2, last2]中找[first1, last1]中的遍历元素
 				if (n == 0 || TinySTL::count(it1, last1, *it1) != n)
 					return false;
 			}
@@ -494,10 +505,15 @@ namespace TinySTL{
 	//********** [sort] ******************************
 	//********* [Algorithm Complexity: O(NlogN)] ****************
 	namespace {
+		// mid3：三点中值
+		// 注意：任何一个元素都可以被选来当作枢轴(pivot)，但其是否合适却会影响快排的效率
+		// 为了避免“元素当初输入时不够随机”所带来的恶化效应，最理想稳当的方式是取整个序列的头，尾，中央三个位置的元素
+		// 以其中值作为枢纽，这种方法称为三点中值。
 		template<class RandomIterator, class BinaryPredicate>
 		typename iterator_traits<RandomIterator>::value_type
 			mid3(RandomIterator first, RandomIterator last, BinaryPredicate pred){//[first, last]
 			auto mid = first + (last + 1 - first) / 2;
+			// first, last, mid三者的局中者
 			if (pred(*mid, *first)){
 				swap(*mid, *first);
 			}
@@ -511,6 +527,7 @@ namespace TinySTL{
 			swap(*mid, *(last - 1));//将mid item换位作为哨兵
 			return ret;
 		}
+		// insertaionSort?
 		template<class RandomIterator, class BinaryPredicate>
 		void bubble_sort(RandomIterator first, RandomIterator last, BinaryPredicate pred){
 			auto len = last - first;
@@ -531,6 +548,12 @@ namespace TinySTL{
 	void sort(RandomIterator first, RandomIterator last){
 		return sort(first, last, less<typename iterator_traits<RandomIterator>::value_type>());
 	}
+
+	// STL的sort函数：先会判断last-first是否大于等于_stl_threshold(16)，
+	// 小区间操作，考虑使用插入排序。
+	// 大区间操作，直接使用快速排序。
+	// 每次调用sort，会先检查last-first的长度和深度depth_limit，如果深度限制为0，证明递归的层数已经足够多，改用堆排序得出结果
+	// 否则，还是继续使用快排。
 	template<class RandomIterator, class BinaryPredicate>
 	void sort(RandomIterator first, RandomIterator last, BinaryPredicate pred){
 		if (first >= last || first + 1 == last)
@@ -538,14 +561,19 @@ namespace TinySTL{
 		if (last - first <= 20)//区间长度小于等于20的采用冒泡排序更快
 			return bubble_sort(first, last, pred);
 		auto mid = mid3(first, last - 1, pred);
+		// 快排
 		auto p1 = first, p2 = last - 2;
 		while (p1 < p2){
-			while (pred(*p1, mid) && (p1 < p2)) ++p1;
-			while (!pred(*p2, mid) && (p1 < p2)) --p2;
-			if (p1 < p2){
-				swap(*p1, *p2);
+			while (pred(*p1, mid) && (p1 < p2)) ++p1;  // p1少于mid
+			while (!pred(*p2, mid) && (p1 < p2)) --p2;  // p2大于mid
+			if (p1 < p2){  // p1和p2还没交错，但是*p1已经大于mid，*p2已经小于mid，因此直接交换，继续循环，直到交错为止。
+				swap(*p1, *p2);  // 
 			}
 		}
+		// 此时,[first, p1]均少于mid;[p1, last]
+		// 因为上面mid3的实现中，找出三点中值之后，swap(*mid, *(last - 1));将中值和last-1换位了
+		// 所以现在需要将last-1的值与相交值换位。相当于将哨兵值放回原位
+		// 所以本函数一直遍历的时候[first, last-2]的数据
 		swap(*p1, *(last - 2));//将作为哨兵的mid item换回原来的位置
 		sort(first, p1, pred);
 		sort(p1 + 1, last, pred);
