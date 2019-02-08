@@ -121,5 +121,5 @@ namespace TinySTL{
 }
 
 
-#include "Detail\AVLTree.impl.h"
+#include "src\avltree.impl.h"
 #endif
