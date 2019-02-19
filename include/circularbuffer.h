@@ -8,6 +8,9 @@
 #include <cassert>
 
 // 环形数组
+// 很多时候，我们需要在内存中记录最近一段时间的数据，如操作记录等。
+// 由于这部分数据记录在内存中，因此并不能无限递增，一般有容量限制，超过后就将最开始的数据移除掉。
+// 在stl中并没有这样的数据结构，一般需要我们自己构造，常用方法如下：
 namespace TinySTL{
 	template<class T, size_t N, class Alloc>
 	class circular_buffer;
